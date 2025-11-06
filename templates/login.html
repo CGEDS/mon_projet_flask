@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Connexion - CGEDS{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6 text-center">
+    <img src="{{ url_for('static', filename='images/logo_cabinet.png') }}" style="height:140px;margin-bottom:10px;" alt="logo">
+    <h2 style="font-weight:700">CABINET GEOMETRE EXPERT DIALLO SEKOU</h2>
+    <h4 class="mb-3">CONNEXION A L'ESPACE TECHNIQUE CGEDS</h4>
+
+    <form method="post" class="mx-auto" style="max-width:420px;">
+      <div class="mb-3 text-start">
+        <label class="form-label">MOT D'UTILISATEUR</label>
+        <input class="form-control" name="username" value="CGEDS">
+      </div>
+      <div class="mb-3 text-start">
+        <label class="form-label">MOT DE PASSE</label>
+        <input class="form-control" type="password" name="password" value="">
+      </div>
+      <button class="btn" type="submit" style="background-color:#004d26;color:#fff;padding:10px 22px;border-radius:6px;">SE CONNECTER</button>
+    </form>
+
+    <div style="margin-top:20px;color:#666;font-size:13px;">
+      <small>2025 Cabinet GEOMETRE EXPERT DILLO SEXOU - Tous droits réservés.</small>
+    </div>
+  </div>
+</div>
+{% endblock %}

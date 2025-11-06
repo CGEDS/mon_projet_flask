@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Lecture du rapport PDF</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body, html { margin:0; padding:0; height:100%; font-family: Arial, sans-serif; }
+        .toolbar { position: fixed; top:0; left:0; right:0; height:50px; background:#f1f1f1; border-bottom:1px solid #ccc; display:flex; align-items:center; justify-content:space-between; padding:0 15px; z-index:1000; }
+        .toolbar a { text-decoration:none; background:#007bff; color:white; padding:6px 12px; border-radius:5px; margin-left:10px; }
+        iframe { width:100%; height:calc(100% - 50px); border:none; margin-top:50px; }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <h3>Lecture du rapport</h3>
+        <div>
+            <a href="{{ url_for('view_report', relpath=relpath) }}"><i class="fa fa-eye"></i></a>
+            <a href="{{ url_for('download_report', relpath=relpath) }}"><i class="fa fa-download"></i></a>
+            <a href="{{ url_for('qr_page', relpath=relpath) }}"><i class="fa fa-qrcode"></i></a>
+            <a href="{{ url_for('home') }}"><i class="fa fa-arrow-left"></i> Retour</a>
+        </div>
+    </div>
+    <iframe src="{{ url_for('view_report', relpath=relpath) }}"></iframe>
+</body>
+</html>

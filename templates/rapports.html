@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="rapport-container">
+    <h2>Rapports : {{ rapport_type }}</h2>
+
+    <form method="POST" class="search-form">
+        <input type="text" name="query" placeholder="Rechercher par nom, prénom ou numéro" value="{{ request.form.query }}">
+        <button type="submit">Filtrer</button>
+    </form>
+
+    <div class="stats">
+        <p>Total : {{ stats.total }}</p>
+        <p>Consultés : {{ stats.consultés }}</p>
+        <p>Non consultés : {{ stats.non_consultés }}</p>
+        <p>Téléchargés : {{ stats.téléchargés }}</p>
+    </div>
+
+    <table class="rapport-table">
+        <tr>
+            <th>Nom du fichier</th>
+            <th>Actions</th>
+        </tr>
+        {% for file in files %}
+        <tr>
+            <td>{{ file }}</td>
+            <td>
+                <a href="{{ url_for('telecharger_rapport', dossier=rapport_type, filename=file) }}" class="btn">Télécharger</a>
+                <a href="{{ url_for('qr_code', dossier=rapport_type, filename=file) }}" class="btn">QR Code</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

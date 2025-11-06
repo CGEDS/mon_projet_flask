@@ -1,0 +1,19 @@
+# Dossier virtuel
+venv312/
+
+# Fichiers Python compilés
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Base de données ou fichiers temporaires
+*.sqlite3
+*.db
+
+# Fichiers de configuration locale
+.env
+
+# Autres dossiers/fichiers à ignorer
+.idea/
+.vscode/

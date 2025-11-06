@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 style="color:#004d26;">Types de rapports</h3>
+<ul class="list-group">
+  {% for t in types %}
+  <li class="list-group-item">
+    <a href="{{ url_for('report_type', report_type=t) }}">{{ t.replace('_',' ') }}</a>
+  </li>
+  {% endfor %}
+</ul>
+{% endblock %}

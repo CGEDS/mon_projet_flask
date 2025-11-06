@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} - CGEDS{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <!-- En-tête avec navigation rapide -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary">{{ page_title }}</h2>
+        <div>
+            <a href="{{ url_for('home') }}" class="btn btn-outline-secondary me-2">Retour au tableau de bord</a>
+        </div>
+    </div>
+
+    <!-- Barre de recherche et filtre -->
+    <form method="get" class="row g-2 align-items-center mb-3">
+        <div class="col-auto">
+            <input type="text" name="q" class="form-control" placeholder="Recherche..." value="{{ q }}">
+        </div>
+        <div class="col-auto">
+            <select name="status" class="form-select">
+                <option value="all" {% if status_filter == 'all' %}selected{% endif %}>Tous</option>
+                <option value="lu" {% if status_filter == 'lu' %}selected{% endif %}>Lu</option>
+                <option value="non_lu" {% if status_filter == 'non_lu' %}selected{% endif %}>Non Lu</option>
+            </select>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary">Filtrer</button>
+        </div>
+    </form>
+
+    <!-- Tableau des rapports -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body p-3">
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered align-middle mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Nom du fichier</th>
+                            <th>Taille</th>
+                            <th>Modifié le</th>
+                            <th>Vues</th>
+                            <th>Téléchargements</th>
+                            <th>Statut</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in reports %}
+                        <tr>
+                            <td>{{ r.name }}</td>
+                            <td>{{ (r.size / 1024) | round(2) }} KB</td>
+                            <td>{{ r.last_viewed | default('N/A') }}</td>
+                            <td>{{ r.views }}</td>
+                            <td>{{ r.downloads }}</td>
+                            <td>
+                                {% if r.status == 'lu' %}
+                                    <span class="badge bg-success">Lu</span>
+                                {% elif r.status == 'modification_non_lue' %}
+                                    <span class="badge bg-warning text-dark">Cliquer pour lire les modifications</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Non Lu</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <!-- Bouton Lire → page HTML avec iframe -->
+                                <a href="{{ url_for('report_page', relpath=r.relpath) }}" class="btn btn-sm btn-info me-1" title="Lire">
+                                    <i class="bi bi-eye-fill"></i>
+                                </a>
+                                <!-- Bouton Télécharger direct -->
+                                <a href="{{ url_for('download_report', relpath=r.relpath) }}" class="btn btn-sm btn-primary me-1" title="Télécharger">
+                                    <i class="bi bi-download"></i>
+                                </a>
+                                <!-- QR Code -->
+                                <a href="{{ url_for('qr_page', relpath=r.relpath) }}" class="btn btn-sm btn-warning" title="QR Code">
+                                    <i class="bi bi-qr-code"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center py-3">Aucun fichier trouvé.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% set total_pages = (total // per_page) + (1 if total % per_page else 0) %}
+    {% if total_pages > 1 %}
+    <nav class="mb-3">
+        <ul class="pagination justify-content-center">
+            {% for p in range(1, total_pages + 1) %}
+            <li class="page-item {% if p == page %}active{% endif %}">
+                <a class="page-link" href="{{ url_for('report_type', report_type=report_type, page=p, per_page=per_page, q=q, status=status_filter) }}">{{ p }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    <!-- Bouton Télécharger tous les fichiers du type -->
+    <div class="text-center">
+        <a href="{{ url_for('download_all', report_type=report_type) }}" class="btn btn-success btn-lg">
+            <i class="bi bi-download me-1"></i> Télécharger tous les fichiers
+        </a>
+    </div>
+
+</div>
+{% endblock %}

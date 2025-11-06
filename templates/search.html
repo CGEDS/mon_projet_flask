@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<h4 style="color:#004d26;">Recherche de rapport</h4>
+
+<!-- Bouton retour tableau de bord -->
+<div class="mb-3">
+  <a href="{{ url_for('home') }}" class="btn" style="background-color:#004d26; color:#fff; border-radius:6px;">
+    ← Retour au Tableau de bord
+  </a>
+</div>
+
+<form method="get" class="mb-3">
+  <div class="input-group">
+    <input name="q" value="{{ request.args.get('q','') }}" class="form-control" placeholder="Nom / prénom / titre foncier...">
+    <button class="btn" style="background:#28a745; color:#fff;">RECHERCHER</button>
+  </div>
+</form>
+
+{% if query %}
+<h6>Résultats ({{ hits|length }})</h6>
+<ul class="list-group">
+  {% for h in hits %}
+  <li class="list-group-item d-flex justify-content-between align-items-center">
+    <div>
+      <strong>{{ h.name }}</strong><br><small class="text-muted">{{ h.relpath }}</small>
+    </div>
+    <div class="d-flex gap-2">
+      <span class="badge bg-info">{{ h.views }}</span>
+      <a class="btn btn-sm btn-primary" href="{{ url_for('download_report', relpath=h.relpath) }}">TELECHARGER</a>
+      <!-- Changement ici : generate_qr → qr_page -->
+      <a class="btn btn-sm btn-info" href="{{ url_for('qr_page', relpath=h.relpath) }}">QR</a>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}
+{% endblock %}
