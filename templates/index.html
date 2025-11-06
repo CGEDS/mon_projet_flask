@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portail Rapports</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="bg">
+<header class="nav">
+<div class="container">
+<img src="{{ url_for('static', filename='images/logo_cabinet.png') }}" alt="logo" class="logo">
+<nav>
+<a href="{{ url_for('login') }}" class="btn">Se connecter</a>
+</nav>
+</div>
+</header>
+
+
+<main class="container hero">
+<h1>Portail d'automatisation des rapports</h1>
+<p class="lead">Consultez, téléchargez et suivez facilement les rapports (certificat, morcellement, réclamations, etc.). Génération de QR codes et tableau de bord inclus.</p>
+<a href="{{ url_for('login') }}" class="primary">Accéder au portail</a>
+</main>
+
+
+<footer class="container foot">© Cabinet - Tous droits réservés</footer>
+
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

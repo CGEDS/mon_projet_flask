@@ -1,0 +1,16 @@
+:root{
+  --cgeds-dark: #004d26;
+  --cgeds-light: #00a859;
+  --bg: #f9f9f9;
+  --text: #333;
+}
+body{
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+.btn{
+  border-radius:6px;
+}
+.card{ border-radius:10px; }
+.table thead th{ border-bottom:none; }

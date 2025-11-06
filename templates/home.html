@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Accueil - CGEDS{% endblock %}
+{% block content %}
+<div class="text-center" style="min-height:60vh">
+  <img src="{{ url_for('static', filename='images/logo_cabinet.png') }}" alt="Logo" style="height:150px; margin-bottom:20px;">
+  <h1>Portail CGEDS - Gestion des rapports</h1>
+  <p class="lead">Consultez, téléchargez et générez des QR codes pour vos rapports.</p>
+  <a class="btn btn-primary btn-lg" href="{{ url_for('login') }}">Accéder au portail</a>
+</div>
+{% endblock %}

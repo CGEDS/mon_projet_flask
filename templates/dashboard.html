@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% block title %}Tableau de bord - CGEDS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 style="color:#004d26;">Tableau de bord du service technique</h3>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary d-flex align-items-center" href="{{ url_for('search') }}">
+      <i class="bi bi-funnel-fill me-1"></i> FILTRER
+    </a>
+    <a class="btn btn-outline-secondary d-flex align-items-center" href="{{ url_for('report_categories') }}">
+      <i class="bi bi-card-list me-1"></i> TYPES DE RAPPORT
+    </a>
+    <a class="btn btn-outline-secondary d-flex align-items-center" href="{{ url_for('logout') }}">
+      <i class="bi bi-box-arrow-right me-1"></i> DECONNEXION
+    </a>
+  </div>
+</div>
+
+<!-- Boutons rapides pour les types officiels -->
+<div class="mb-4 d-flex gap-2 flex-wrap justify-content-start">
+  {% set colors = {
+      'ETAT_VISITE':'#0d6efd',
+      'RAPPORT_CL':'#198754',
+      'RAPPORT_ETAT_LIEU':'#ffc107',
+      'RAPPORT_ML':'#0dcaf0',
+      'RECLAMATION':'#dc3545',
+      'RECOMMANDATION':'#6c757d'
+  } %}
+
+  {% set icons = {
+      'ETAT_VISITE':'bi-eye-fill',
+      'RAPPORT_CL':'bi-geo-alt-fill',
+      'RAPPORT_ETAT_LIEU':'bi-map-fill',
+      'RAPPORT_ML':'bi-diagram-3-fill',
+      'RECLAMATION':'bi-exclamation-triangle-fill',
+      'RECOMMANDATION':'bi-hand-thumbs-up-fill'
+  } %}
+
+  {% for t in official %}
+    <a 
+      class="btn type-btn d-flex align-items-center gap-1 text-white"
+      href="{{ url_for('report_type', report_type=t) }}"
+      style="background-color: {{ colors.get(t, '#343a40') }}"
+    >
+      <i class="bi {{ icons.get(t, 'bi-file-earmark-text') }}"></i>
+      {{ t.replace('_', ' ') }}
+    </a>
+  {% endfor %}
+</div>
+
+<!-- main charts area -->
+<div class="row">
+  <!-- Bar chart -->
+  <div class="col-lg-8 mb-3 d-flex justify-content-center align-items-center">
+    <div class="card w-100 p-4 shadow-sm" style="max-width:820px; border-radius:12px;">
+      <h5 class="text-center mb-3" style="color:#004d26;">Rapports lus / non lus par type</h5>
+      <canvas id="bars_centered" style="max-height:400px;"></canvas>
+    </div>
+  </div>
+
+  <!-- Pie charts -->
+  <div class="col-lg-4">
+    <div class="card p-4 mb-3 shadow-sm" style="background:#f9f9f9; border-radius:12px;">
+      <h6 class="text-center mb-3" style="color:#004d26;">Statistiques</h6>
+      <div class="d-flex justify-content-around flex-wrap">
+        <div class="text-center chart-container">
+          <canvas id="pie_totals" style="max-width:150px; max-height:150px;"></canvas>
+          <div class="mt-2 fw-semibold">Total rapports</div>
+        </div>
+        <div class="text-center chart-container">
+          <canvas id="pie_views" style="max-width:150px; max-height:150px;"></canvas>
+          <div class="mt-2 fw-semibold">Vues</div>
+        </div>
+        <div class="text-center chart-container">
+          <canvas id="pie_downloads" style="max-width:150px; max-height:150px;"></canvas>
+          <div class="mt-2 fw-semibold">Téléchargés</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Boutons type */
+.type-btn {
+  color: #fff;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.type-btn:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+  opacity: 0.95;
+}
+
+/* Chart container */
+.chart-container {
+  width: 150px;
+  height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Cards hover effect */
+.card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+}
+
+/* Titles */
+h3, h5, h6 {
+  font-weight: 600;
+}
+
+/* Buttons icons alignment */
+.btn i {
+  vertical-align: middle;
+}
+</style>
+
+<!-- Chart.js + datalabels -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+<script>
+fetch("{{ url_for('api_stats') }}")
+  .then(r => r.json())
+  .then(data => {
+    const labels = data.labels;
+
+    // Bar chart
+    const ctxBar = document.getElementById('bars_centered').getContext('2d');
+    new Chart(ctxBar, {
+      type:'bar',
+      data: {
+        labels: labels,
+        datasets:[
+          { label: 'Lu', data: data.lus, backgroundColor:'#28a745' },
+          { label: 'Non lu', data: data.non_lus, backgroundColor:'#dc3545' }
+        ]
+      },
+      options: {
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins: {
+          legend:{ position:'top' },
+          datalabels: { color: '#fff', font:{weight:'bold', size:12}, anchor:'center', align:'center' }
+        },
+        scales: { x:{ stacked:true }, y:{ stacked:true, beginAtZero:true } }
+      },
+      plugins: [ChartDataLabels]
+    });
+
+    // Pie charts
+    function makePie(id, arr, colors){
+      const c = document.getElementById(id).getContext('2d');
+      new Chart(c,{
+        type:'pie',
+        data:{ labels:labels, datasets:[{ data:arr, backgroundColor: colors || ['#0d6efd','#198754','#ffc107','#0dcaf0','#dc3545','#6c757d'] }] },
+        options:{ responsive:true, maintainAspectRatio:true, plugins:{ legend:{ display:false }, datalabels:{ color:'#fff', font:{ weight:'bold', size:14 } } } },
+        plugins:[ChartDataLabels]
+      });
+    }
+
+    makePie('pie_totals', data.totals);
+    makePie('pie_views', data.views);
+    makePie('pie_downloads', data.downloads);
+  });
+</script>
+{% endblock %}
