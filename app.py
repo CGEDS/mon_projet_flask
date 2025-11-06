@@ -15,13 +15,13 @@ BASE_DIR = Path(__file__).parent
 SECRET_KEY = os.environ.get("FLASK_SECRET", "change_me_123")
 USERS = {"CGEDS": "CGEDS2025"}
 
-# --- PostgreSQL via variables d'environnement ---
+# --- PostgreSQL (Render) ---
 DB_CONFIG = {
-    "host": os.environ.get("DB_HOST"),
-    "database": os.environ.get("DB_NAME"),
-    "user": os.environ.get("DB_USER"),
-    "password": os.environ.get("DB_PASSWORD"),
-    "port": int(os.environ.get("DB_PORT", 5432))
+    "host": "dpg-d46j0j3e5dus73arhtdg-a.oregon-postgres.render.com",
+    "database": "cgeds_db",
+    "user": "cgeds_db_user",
+    "password": "ThpgrpKHtheA9JwQyCYmqkbNq2vfhJEC",
+    "port": 5432
 }
 
 def get_conn():
@@ -136,10 +136,11 @@ app.jinja_env.globals.update(
     get_meta=get_meta
 )
 
-# --- Routes Flask (idem que ton code actuel) ---
-# [Le reste du code Flask reste inchangé]
+# --- Routes (idem code précédent) ---
+# ... (toutes tes routes restent identiques) ...
+
 # --- Lancer la sync au démarrage ---
 threading.Thread(target=sync_drive_to_postgres, daemon=True).start()
 
 if __name__=="__main__":
-    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    app.run(debug=True, host="0.0.0.0", port=5000)
