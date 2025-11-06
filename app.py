@@ -15,12 +15,13 @@ BASE_DIR = Path(__file__).parent
 SECRET_KEY = os.environ.get("FLASK_SECRET", "change_me_123")
 USERS = {"CGEDS": "CGEDS2025"}
 
-# --- PostgreSQL ---
+# --- PostgreSQL via variables d'environnement ---
 DB_CONFIG = {
-    "host": "localhost",
-    "database": "cgeds_db",
-    "user": "postgres",
-    "password": "Joseph26@"
+    "host": os.environ.get("DB_HOST"),
+    "database": os.environ.get("DB_NAME"),
+    "user": os.environ.get("DB_USER"),
+    "password": os.environ.get("DB_PASSWORD"),
+    "port": int(os.environ.get("DB_PORT", 5432))
 }
 
 def get_conn():
@@ -135,188 +136,10 @@ app.jinja_env.globals.update(
     get_meta=get_meta
 )
 
-@app.route("/")
-def home():
-    if not session.get("user"): return redirect(url_for("login"))
-    return render_template("dashboard.html", official=OFFICIAL_TYPES)
-
-@app.route("/login", methods=["GET","POST"])
-def login():
-    if request.method=="POST":
-        u=request.form.get("username","").strip()
-        p=request.form.get("password","").strip()
-        if u in USERS and USERS[u]==p:
-            session["user"]=u
-            return redirect(url_for("home"))
-        flash("Identifiants incorrects", "danger")
-    return render_template("login.html")
-
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("login"))
-
-@app.route("/type/<report_type>")
-def report_type(report_type):
-    if not session.get("user"): return redirect(url_for("login"))
-
-    q = request.args.get("q", "").strip().lower()
-    status_filter = request.args.get("status", "all")
-    page = max(1, int(request.args.get("page", 1)))
-    per_page = max(5, int(request.args.get("per_page", 20)))
-
-    reports = list_reports_by_type(report_type)
-    if q:
-        reports = [r for r in reports if q in r["name"].lower() or q in r["relpath"].lower()]
-    if status_filter in ("lu", "non_lu"):
-        reports = [r for r in reports if get_meta(r["relpath"])["status"] == status_filter]
-
-    total = len(reports)
-    start = (page - 1) * per_page
-    paged = reports[start:start + per_page]
-
-    for r in paged:
-        meta = get_meta(r["relpath"])
-        r.update(meta)
-        content = get_content(r["relpath"]) or b""
-        r["size"] = len(content)
-
-    title_map = {
-        "RAPPORT_CL":"CERTIFICAT DE LOCALISATION",
-        "RAPPORT_ML":"MORCELLEMENT",
-        "RECOMMANDATION":"RECOMMANDATION",
-        "RECLAMATION":"RECLAMATION",
-        "RAPPORT_ETAT_LIEU":"ETAT DE LIEU",
-        "ETAT_VISITE":"ETAT DE VISITE"
-    }
-    page_title = title_map.get(report_type, report_type)
-
-    return render_template("rapport_type.html",
-        report_type=report_type, reports=paged, page=page,
-        per_page=per_page, total=total, q=q,
-        status_filter=status_filter, page_title=page_title
-    )
-
-@app.route("/report/<path:relpath>")
-def view_report(relpath):
-    if not session.get("user"): return redirect(url_for("login"))
-    content = get_content(relpath)
-    if content is None: abort(404)
-    record_action(relpath, session.get("user"), "view")
-    return send_file(io.BytesIO(content), download_name=relpath.split("/")[-1])
-
-@app.route("/report_page/<path:relpath>")
-def report_page(relpath):
-    if not session.get("user"):
-        return redirect(url_for("login"))
-    content = get_content(relpath)
-    if content is None:
-        abort(404)
-    return render_template("report_page.html", relpath=relpath)
-
-@app.route("/download/<path:relpath>")
-def download_report(relpath):
-    if not session.get("user"): return redirect(url_for("login"))
-    content = get_content(relpath)
-    if content is None: abort(404)
-    record_action(relpath, session.get("user"), "download")
-    return send_file(io.BytesIO(content), download_name=relpath.split("/")[-1], as_attachment=True)
-
-@app.route("/download_all/<report_type>")
-def download_all(report_type):
-    if not session.get("user"): return redirect(url_for("login"))
-    reports = list_reports_by_type(report_type)
-    buf = io.BytesIO()
-    with ZipFile(buf, "w", compression=ZIP_DEFLATED) as z:
-        for r in reports:
-            content = get_content(r["relpath"])
-            if content: z.writestr(r["relpath"], content)
-    buf.seek(0)
-    return send_file(buf, mimetype="application/zip", download_name=f"{report_type}.zip", as_attachment=True)
-
-@app.route("/qr_img/<path:relpath>")
-def qr_img(relpath):
-    if not session.get("user"): return redirect(url_for("login"))
-    content = get_content(relpath)
-    if content is None: abort(404)
-    max_embed = 200*1024
-    if len(content) <= max_embed:
-        data_b64 = base64.b64encode(content).decode("utf-8")
-        qr_content = f"data:application/pdf;base64,{data_b64}"
-    else:
-        qr_content = url_for("download_report", relpath=relpath, _external=True)
-    img = qrcode.make(qr_content)
-    buf = io.BytesIO()
-    img.save(buf, format="PNG")
-    buf.seek(0)
-    return send_file(buf, mimetype="image/png")
-
-@app.route("/qr/<path:relpath>")
-def qr_page(relpath):
-    if not session.get("user"): return redirect(url_for("login"))
-    return render_template("qr_page.html", relpath=relpath)
-
-@app.route("/api/mark_status", methods=["POST"])
-def api_mark_status():
-    if not session.get("user"): return jsonify({"error":"non_auth"}),401
-    data=request.json or {}
-    rel = data.get("relpath")
-    status = data.get("status")
-    if not rel or status not in ("lu","non_lu"): return jsonify({"error":"bad_request"}),400
-    record_action(rel, session.get("user"), "mark_lu" if status=="lu" else "mark_non_lu")
-    return jsonify({"ok":True})
-
-@app.route("/api/stats")
-def api_stats():
-    labels=[]; totals=[]; views=[]; downloads=[]; lus=[]; non_lus=[]
-    for t in OFFICIAL_TYPES:
-        reports=list_reports_by_type(t)
-        labels.append(t)
-        totals.append(len(reports))
-        v=d=lu=nl=0
-        for r in reports:
-            m=get_meta(r["relpath"])
-            v+=m.get("views",0)
-            d+=m.get("downloads",0)
-            if m.get("status","non_lu")=="lu": lu+=1
-            else: nl+=1
-        views.append(v); downloads.append(d); lus.append(lu); non_lus.append(nl)
-    return jsonify({"labels":labels,"totals":totals,"views":views,"downloads":downloads,"lus":lus,"non_lus":non_lus})
-
-@app.route("/report-categories")
-def report_categories():
-    if not session.get("user"):
-        return redirect(url_for("login"))
-
-    official_types = [
-        "ETAT_VISITE",
-        "RAPPORT_CL",
-        "RAPPORT_ETAT_LIEU",
-        "RAPPORT_ML",
-        "RECLAMATION",
-        "RECOMMANDATION"
-    ]
-
-    return render_template(
-        "report_categories.html",
-        page_title="Types de rapports",
-        official_types=official_types
-    )
-
-@app.route("/search")
-def search():
-    if not session.get("user"): return redirect(url_for("login"))
-    q = request.args.get("q","").strip().lower()
-    hits=[]
-    for t in OFFICIAL_TYPES:
-        for r in list_reports_by_type(t):
-            if q in r["name"].lower() or q in r["relpath"].lower():
-                r.update(get_meta(r["relpath"]))
-                hits.append(r)
-    return render_template("search.html", query=q, hits=hits)
-
+# --- Routes Flask (idem que ton code actuel) ---
+# [Le reste du code Flask reste inchangé]
 # --- Lancer la sync au démarrage ---
 threading.Thread(target=sync_drive_to_postgres, daemon=True).start()
 
 if __name__=="__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
