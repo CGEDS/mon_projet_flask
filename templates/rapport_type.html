@@ -26,7 +26,7 @@
             </select>
         </div>
         <div class="col-auto">
-            <button class="btn btn-primary">Filtrer</button>
+            <button class="btn btn-primary" type="submit">Filtrer</button>
         </div>
     </form>
 
@@ -64,15 +64,17 @@
                                 {% endif %}
                             </td>
                             <td class="text-center">
-                                <!-- Bouton Lire → page HTML avec iframe -->
+                                <!-- Bouton Lire -->
                                 <a href="{{ url_for('report_page', relpath=r.relpath) }}" class="btn btn-sm btn-info me-1" title="Lire">
                                     <i class="bi bi-eye-fill"></i>
                                 </a>
-                                <!-- Bouton Télécharger direct -->
-                                <a href="{{ url_for('download_report', relpath=r.relpath) }}" class="btn btn-sm btn-primary me-1" title="Télécharger">
+
+                                <!-- ✅ Correction ici : anciennement 'download_report' -->
+                                <a href="{{ url_for('download', relpath=r.relpath) }}" class="btn btn-sm btn-primary me-1" title="Télécharger">
                                     <i class="bi bi-download"></i>
                                 </a>
-                                <!-- QR Code -->
+
+                                <!-- Bouton QR Code -->
                                 <a href="{{ url_for('qr_page', relpath=r.relpath) }}" class="btn btn-sm btn-warning" title="QR Code">
                                     <i class="bi bi-qr-code"></i>
                                 </a>
@@ -103,7 +105,7 @@
     </nav>
     {% endif %}
 
-    <!-- Bouton Télécharger tous les fichiers du type -->
+    <!-- Bouton Télécharger tous les fichiers -->
     <div class="text-center">
         <a href="{{ url_for('download_all', report_type=report_type) }}" class="btn btn-success btn-lg">
             <i class="bi bi-download me-1"></i> Télécharger tous les fichiers
