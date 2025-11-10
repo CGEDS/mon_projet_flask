@@ -1,6 +1,5 @@
 Flask==2.3.3
-qrcode==7.4.2
-Pillow==9.5.0
+segno==1.5.1
 python-dotenv==1.0.0
 google-api-python-client==2.99.0
 pikepdf==8.6.0
