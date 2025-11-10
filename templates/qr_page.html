@@ -6,11 +6,11 @@
   <p class="text-muted mb-3">Scannez le QR pour ouvrir ou télécharger le rapport.</p>
 
   <div class="my-3">
-    <img src="{{ url_for('qr_img', relpath=relpath) }}" alt="QR Code" class="border rounded shadow-sm p-2" style="max-width:320px;">
+    <img src="{{ url_for('generate_qr', relpath=relpath) }}" alt="QR Code" class="border rounded shadow-sm p-2" style="max-width:320px;">
   </div>
 
   <div class="d-flex justify-content-center flex-wrap gap-2 mt-3">
-    <a href="{{ url_for('qr_img', relpath=relpath) }}" class="btn btn-outline-primary d-flex align-items-center gap-1" download>
+    <a href="{{ url_for('generate_qr', relpath=relpath) }}" class="btn btn-outline-primary d-flex align-items-center gap-1" download>
       <i class="bi bi-qr-code-scan"></i> Télécharger QR
     </a>
     <a href="{{ url_for('download_report', relpath=relpath) }}" class="btn btn-outline-success d-flex align-items-center gap-1">

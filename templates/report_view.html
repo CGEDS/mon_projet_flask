@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Lecture du rapport PDF</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background: #f8f9fa;
+            font-family: Arial, sans-serif;
+        }
+
+        .toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background-color: #f1f1f1;
+            border-bottom: 1px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            z-index: 1000;
+        }
+
+        .toolbar h3 {
+            margin: 0;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .toolbar a {
+            text-decoration: none;
+            background-color: #007bff;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 5px;
+            margin-left: 10px;
+            transition: background-color 0.2s ease;
+        }
+
+        .toolbar a:hover {
+            background-color: #0056b3;
+        }
+
+        iframe {
+            width: 100%;
+            height: calc(100% - 50px);
+            border: none;
+            margin-top: 50px;
+            background: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="toolbar">
+        <h3>Lecture du rapport</h3>
+        <div>
+            <a href="{{ url_for('download_report', relpath=relpath|urlencode) }}">Télécharger</a>
+            <a href="{{ url_for('generate_qr', relpath=relpath|urlencode) }}">QR Code</a>
+            <a href="{{ url_for('home') }}">Retour</a>
+        </div>
+    </div>
+
+    <!-- ✅ Affichage du PDF avec streaming pour les gros fichiers -->
+    <iframe 
+        src="{{ url_for('stream_pdf', relpath=relpath|urlencode) }}" 
+        style="width:100%; height:95vh; border:none;">
+    </iframe>
+
+</body>
+</html>

@@ -2,3 +2,7 @@ Flask==2.3.3
 qrcode==7.4.2
 Pillow==10.0.0
 python-dotenv==1.0.0
+google-api-python-client==2.99.0
+pikepdf==8.6.0
+supabase==1.0.0
+gunicorn==21.2.0
